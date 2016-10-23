@@ -330,30 +330,29 @@ class DownloadTaskDelegate: TaskDelegate, URLSessionDownloadDelegate {
         didFinishDownloadingTo location: URL)
     {
         temporaryURL = location
-
-        if let destination = destination {
-            let result = destination(location, downloadTask.response as! HTTPURLResponse)
-            let destination = result.destinationURL
-            let options = result.options
-
-            do {
-                destinationURL = destination
-
-                if options.contains(.removePreviousFile) {
-                    if FileManager.default.fileExists(atPath: destination.path) {
-                        try FileManager.default.removeItem(at: destination)
-                    }
-                }
-
-                if options.contains(.createIntermediateDirectories) {
-                    let directory = destination.deletingLastPathComponent()
-                    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
-                }
-
-                try FileManager.default.moveItem(at: location, to: destination)
-            } catch {
-                self.error = error
+        
+        guard
+            let destination = destination,
+            let response = downloadTask.response as? HTTPURLResponse else { return }
+        
+        let result = destination(location, response)
+        let destinationURL = result.destinationURL
+        self.destinationURL = destinationURL
+        let options = result.options
+        
+        do {
+            if options.contains(.removePreviousFile), FileManager.default.fileExists(atPath: destinationURL.path) {
+                try FileManager.default.removeItem(at: destinationURL)
             }
+            
+            if options.contains(.createIntermediateDirectories) {
+                let directory = destinationURL.deletingLastPathComponent()
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            }
+            
+            try FileManager.default.moveItem(at: location, to: destinationURL)
+        } catch {
+            self.error = error
         }
     }
 

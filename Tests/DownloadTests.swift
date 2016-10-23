@@ -101,6 +101,34 @@ class DownloadResponseTestCase: BaseTestCase {
             }
         }
     }
+    
+    func testCancelledDownloadRequest() {
+        // Given
+        let fileURL = randomCachesFileURL
+        let numberOfLines = 100
+        let urlString = "https://httpbin.org/stream/\(numberOfLines)"
+        let destination: DownloadRequest.DownloadFileDestination = { _, _ in (fileURL, []) }
+        
+        let expectation = self.expectation(description: "Cancelled download request should not download data to file: \(urlString)")
+        var response: DefaultDownloadResponse?
+        
+        // When
+        Alamofire.download(urlString, to: destination)
+            .response { resp in
+                response = resp
+                expectation.fulfill()
+            }
+            .cancel()
+        
+        waitForExpectations(timeout: timeout, handler: nil)
+        
+        // Then
+        XCTAssertNotNil(response?.request)
+        XCTAssertNil(response?.response)
+        XCTAssertNil(response?.destinationURL)
+        XCTAssertNil(response?.resumeData)
+        XCTAssertNotNil(response?.error)
+    }
 
     func testDownloadRequestWithProgress() {
         // Given
