@@ -2,4 +2,4 @@
 
 具体去掉的内容可在工程中搜索`// MARK: 适配iOS 8`查看。
 使用时在Podfile中添加即可：
-`pod 'Alamofire_iOS8', :git => 'https://github.com/zhha/Alamofire'`
+`pod 'Alamofire', :git => 'https://github.com/zhha/Alamofire'`
